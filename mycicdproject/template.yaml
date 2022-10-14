@@ -130,8 +130,8 @@ Parameters:
 Mappings: 
   env:
      dev:
-      LambdaVpcSecurityGroup: sg-0f90837000c6dc8bb
-      LambdaVpcSubnets: "subnet-07267559da8a126a4,subnet-0f3111d4747854607"
+      LambdaVpcSecurityGroup: sg-0e4207658a8857d43
+      LambdaVpcSubnets: "subnet-0a08ce184448d4ad5,subnet-0c0292dde4087e4c0"
 
 Resources:
      
