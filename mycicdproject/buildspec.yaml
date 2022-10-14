@@ -10,7 +10,7 @@ phases:
     commands:
       - pip install pytest requests
       - echo "[+] Running tests..."
-      - python -m pytest tests/ -v
+ 
   build:
     commands:
       - echo "[+] Installing dependencies...."
