@@ -140,6 +140,7 @@ Resources:
     DependsOn:
         - ExecutiononLambdaRole
     Properties:
+      Codeuri: ../code/myfunction.zip
       Description: 'My sample project lambda function'
       FunctionName: !Sub ${MyLambdaFunction}-${EnvironmentType}
       Handler: !Ref Handler
