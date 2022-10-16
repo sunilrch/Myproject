@@ -16,6 +16,6 @@ phases:
       - echo "SAM packaging completed on `date`"
 
 artifacts:
+  type: zip
   files:
-    - newStageTemplate.yaml
-  discard-paths: yes
+    - ./**/*
