@@ -6,7 +6,7 @@ phases:
       - echo "[+] Scanning for security vulnerability within dependencies"
   pre_build:
     commands:
-      - yum install python-pip
+      - pip3 install awscli --upgrade --user
      
   build:
     commands:
