@@ -145,7 +145,7 @@ Resources:
       FunctionName: !Sub ${MyLambdaFunction}-${EnvironmentType}
       Handler: !Ref Handler
       MemorySize: !Ref Memory
-      Role: !GetAtt ExecutionSampleLambdaRole.Arn
+      Role: !GetAtt ExecutiononLambdaRole.Arn
       Runtime: !Ref Runtime
       Tags:
           cost-centre: !Ref TagCostCenter
