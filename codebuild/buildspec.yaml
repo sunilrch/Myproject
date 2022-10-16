@@ -1,1 +1,22 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - echo "[+] Scanning for security vulnerability within dependencies"
+  pre_build:
+    commands:
+      - pip3 install awscli --upgrade --user
+     
+  build:
+    commands:
+      - aws cloudformation package --template-file template.yaml --s3-bucket $S3_BUCKET --output-template-file newStageTemplate.yaml
+  post_build:
+    commands:
+      - echo "SAM packaging completed on `date`"
+
+artifacts:
+  type: zip
+  files:
+    - ./**/*
 
