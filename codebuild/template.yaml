@@ -160,7 +160,7 @@ Resources:
          SubnetIds: !Split [ ",", !FindInMap [env, !Ref "EnvironmentType", LambdaVpcSubnets] ]
 
 
-  ExecutionSampleLambdaRole:
+  ExecutiononLambdaRole:
     Type: AWS::IAM::Role
     Properties:
       Policies:
