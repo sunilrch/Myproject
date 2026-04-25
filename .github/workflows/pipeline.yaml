@@ -1,0 +1,100 @@
+name: Full Deploy Pipeline
+
+on:
+  push:
+    branches: [ "main", "dev" ]
+
+env:
+  AWS_REGION: ap-south-1
+  CLUSTER_NAME: demo-eks
+  ECR_REPO: node-app
+
+jobs:
+
+  terraform:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - uses: hashicorp/setup-terraform@v3
+
+      - run: terraform init
+        working-directory: terraform/
+
+      - run: terraform apply -auto-approve
+        working-directory: terraform/
+
+  build:
+    needs: terraform
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - run: |
+          aws ecr get-login-password --region $AWS_REGION \
+          | docker login --username AWS --password-stdin \
+          ${{ secrets.ACCOUNT_ID }}.dkr.ecr.$AWS_REGION.amazonaws.com
+
+      - run: |
+          IMAGE_URI=${{ secrets.ACCOUNT_ID }}.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:${{ github.sha }}
+          docker build -t $IMAGE_URI ./app
+          docker push $IMAGE_URI
+          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - run: aws eks update-kubeconfig --name $CLUSTER_NAME
+
+      - uses: azure/setup-helm@v4
+
+      - run: |
+          helm upgrade --install node-app ./helm/node-app \
+            -n dev --create-namespace \
+            --set image.repository=${{ secrets.ACCOUNT_ID }}.dkr.ecr.$AWS_REGION.amazonaws.com/node-app \
+            --set image.tag=${{ github.sha }} \
+            --set env=dev
+
+  datadog:
+    needs: deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - run: aws eks update-kubeconfig --name $CLUSTER_NAME
+
+      - uses: azure/setup-helm@v4
+
+      - run: |
+          kubectl create namespace datadog || true
+
+          kubectl create secret generic datadog-secret \
+            --from-literal=api-key=${{ secrets.DATADOG_API_KEY }} \
+            -n datadog || true
+
+          helm repo add datadog https://helm.datadoghq.com
+
+          helm upgrade --install datadog datadog/datadog \
+            -n datadog \
+            -f datadog/datadog-values.yaml

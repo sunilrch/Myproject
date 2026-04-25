@@ -1,0 +1,10 @@
+datadog:
+  apiKeyExistingSecret: datadog-secret
+  logs:
+    enabled: true
+    containerCollectAll: true
+  apm:
+    enabled: true
+
+clusterAgent:
+  enabled: true
